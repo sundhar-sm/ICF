@@ -1,0 +1,19 @@
+package com.oneapp.icf.assignment.services;
+
+import java.util.List;
+
+import com.oneapp.icf.assignment.dto.EmployeeDetailsDto;
+
+public interface EmployeeService {
+
+	List<EmployeeDetailsDto> getAllEmployee();
+
+	EmployeeDetailsDto getEmployeeById(String employeeId);
+
+	EmployeeDetailsDto deleteEmployee(String employeeId);
+
+	String createNewEmployee(EmployeeDetailsDto employeeDetailsDto);
+
+	List<EmployeeDetailsDto> updateEmployee(String employeeId);
+	
+}

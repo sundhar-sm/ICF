@@ -1,0 +1,32 @@
+package com.oneapp.icf.assignment.dao;
+
+import org.springframework.data.repository.CrudRepository;
+
+import com.oneapp.icf.assignment.entity.EmployeeDetailsDo;
+
+//repository that extends CrudRepository  
+public interface EmployeeRepository extends CrudRepository<EmployeeDetailsDo, String> {
+	
+	@Override
+	protected EmployeeDetailsDo importDto(EmployeeDetailsDto fromDto) {
+
+		NotificationEventsDo entity = new NotificationEventsDo();
+		if (!ServicesUtil.isEmpty(fromDto.getEventId()))
+			entity.setEventId(fromDto.getEventId());
+		if (!ServicesUtil.isEmpty(fromDto.getId()))
+			entity.setId(fromDto.getId());
+		if (!ServicesUtil.isEmpty(fromDto.getAdminUser()))
+			entity.setAdminUser(fromDto.getAdminUser());
+		if (!ServicesUtil.isEmpty(fromDto.getPriority()))
+			entity.setPriority(fromDto.getPriority());
+		if (!ServicesUtil.isEmpty(fromDto.getEventGroup()))
+			entity.setEventGroup(fromDto.getEventGroup());
+		if (!ServicesUtil.isEmpty(fromDto.getEventName()))
+			entity.setEventName(fromDto.getEventName());
+		if (!ServicesUtil.isEmpty(fromDto.getIsDefault()))
+			entity.setIsDefault(fromDto.getIsDefault());
+		return entity;
+	}
+	
+	
+}

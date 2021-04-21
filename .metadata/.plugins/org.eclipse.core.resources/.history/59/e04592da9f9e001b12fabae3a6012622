@@ -1,0 +1,113 @@
+package oneapp.incture.workbox.demo.notification.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hibernate.Query;
+import org.springframework.stereotype.Repository;
+
+import oneapp.incture.workbox.demo.adapter_base.dao.BaseDao;
+import oneapp.incture.workbox.demo.adapter_base.util.ServicesUtil;
+import oneapp.incture.workbox.demo.notification.dto.NotificationProfileSettingDto;
+import oneapp.incture.workbox.demo.notification.entity.NotificationProfileSettingDo;
+
+@Repository("NotificationProfileSettingDao")
+public class NotificationProfileSettingDao
+		extends BaseDao<NotificationProfileSettingDo, NotificationProfileSettingDto> {
+
+	@Override
+	protected NotificationProfileSettingDto exportDto(NotificationProfileSettingDo entity) {
+
+		NotificationProfileSettingDto NotificationProfileSettingDto = new NotificationProfileSettingDto();
+
+		if (!ServicesUtil.isEmpty(entity.getProfileName()))
+			NotificationProfileSettingDto.setProfileName(entity.getProfileName());
+		if (!ServicesUtil.isEmpty(entity.getUserId()))
+			NotificationProfileSettingDto.setUserId(entity.getUserId());
+		if (!ServicesUtil.isEmpty(entity.getProfileId()))
+			NotificationProfileSettingDto.setProfileId(entity.getProfileId());
+		if (!ServicesUtil.isEmpty(entity.getSettingId()))
+			NotificationProfileSettingDto.setSettingId(entity.getSettingId());
+		if (!ServicesUtil.isEmpty(entity.getIsActive()))
+			NotificationProfileSettingDto.setIsActive(entity.getIsActive());
+		if (!ServicesUtil.isEmpty(entity.getScheduledFrom()))
+			NotificationProfileSettingDto
+					.setScheduledFrom(ServicesUtil.convertFromDateToString(entity.getScheduledFrom()));
+		if (!ServicesUtil.isEmpty(entity.getScheduledTo()))
+			NotificationProfileSettingDto.setScheduledTo(ServicesUtil.convertFromDateToString(entity.getScheduledTo()));
+
+		return NotificationProfileSettingDto;
+	}
+
+	@Override
+	protected NotificationProfileSettingDo importDto(NotificationProfileSettingDto fromDto) {
+
+		NotificationProfileSettingDo entity = new NotificationProfileSettingDo();
+
+		if (!ServicesUtil.isEmpty(fromDto.getProfileName()))
+			entity.setProfileName(fromDto.getProfileName());
+		if (!ServicesUtil.isEmpty(fromDto.getUserId()))
+			entity.setUserId(fromDto.getUserId());
+		if (!ServicesUtil.isEmpty(fromDto.getProfileId()))
+			entity.setProfileId(fromDto.getProfileId());
+		if (!ServicesUtil.isEmpty(fromDto.getSettingId()))
+			entity.setSettingId(fromDto.getSettingId());
+		if (!ServicesUtil.isEmpty(fromDto.getIsActive()))
+			entity.setIsActive(fromDto.getIsActive());
+		if (!ServicesUtil.isEmpty(fromDto.getScheduledFrom()))
+			entity.setScheduledFrom(ServicesUtil.convertFromStringToDateSubstitution(fromDto.getScheduledFrom()));
+		if (!ServicesUtil.isEmpty(fromDto.getScheduledTo()))
+			entity.setScheduledTo(ServicesUtil.convertFromStringToDateSubstitution(fromDto.getScheduledTo()));
+
+		return entity;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<NotificationProfileSettingDto> getResult(String userId) {
+		List<NotificationProfileSettingDto> ruleDtos = null;
+		NotificationProfileSettingDto dto = null;
+		// String queryString = " select do from NotificationProfileSettingDo do
+		// where do.userId='" + userId + "'";
+
+		String queryString = "" + "select do from NotificationProfileSettingDo do where "
+				+ "(do.profileName='Silent Mode' and " + "userId =(case when ((select count(do) "
+				+ "from NotificationProfileSettingDo do where do.profileName='Silent Mode' group by do.profileName "
+				+ ")=1) then 'Admin' else '" + userId + "' end)) or (" + "do.profileName='Airplane Mode' and "
+				+ "do.userId =(case when ((select count(do) "
+				+ "from NotificationProfileSettingDo do where do.profileName='Airplane Mode' group by do.profileName "
+				+ ")=1) then 'Admin' else '" + userId + "' end)) or (" + "do.profileName='Do Not Disturb Mode' and "
+				+ "do.userId =(case when ((select count(do) "
+				+ "from NotificationProfileSettingDo do where do.profileName='Do Not Disturb Mode' group by do.profileName "
+				+ ")=1) then 'Admin' else '" + userId + "' end)) or ( "
+				+ "do.profileName not in ('Do Not Disturb Mode','Airplane Mode','Silent Mode') and do.userId='" + userId
+				+ "')";
+
+		System.err.println("getResult [QueryString]" + queryString);
+		Query query = this.getSession().createQuery(queryString);
+		List<NotificationProfileSettingDo> resultList = query.list();
+		if (!ServicesUtil.isEmpty(resultList)) {
+			ruleDtos = new ArrayList<NotificationProfileSettingDto>();
+			for (NotificationProfileSettingDo entity : resultList) {
+				dto = new NotificationProfileSettingDto();
+				dto = exportDto(entity);
+				ruleDtos.add(dto);
+
+			}
+		}
+		return ruleDtos;
+	}
+
+	public String updateOldProfile(String name) {
+		String updateEnableQuery = "update notification_profile_setting set is_active=0 where  user_id='" + name + "'";
+		int resultRows = this.getSession().createSQLQuery(updateEnableQuery).executeUpdate();
+		System.err.println("[WBP-Dev][Workbox][updateSubstitutionRule][query]" + updateEnableQuery);
+		if (resultRows > 0)
+			return "SUCCESS";
+
+		else
+			return "FAILURE";
+	}
+
+	
+
+}

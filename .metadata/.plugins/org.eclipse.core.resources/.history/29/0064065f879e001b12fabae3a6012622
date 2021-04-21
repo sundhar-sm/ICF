@@ -1,0 +1,8 @@
+package com.oneapp.icf.assignment.services;
+
+import oneapp.incture.workbox.demo.cai.chatbot.dto.ChatBotResponseDto;
+import oneapp.incture.workbox.demo.cai.chatbot.dto.ChatbotDataRequestDto;
+
+public interface EmployeeService {
+	
+}

@@ -1,0 +1,117 @@
+package oneapp.incture.workbox.demo.notification.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.transaction.Transactional;
+
+import org.hibernate.Query;
+import org.springframework.stereotype.Repository;
+
+import oneapp.incture.workbox.demo.adapter_base.dao.BaseDao;
+import oneapp.incture.workbox.demo.adapter_base.util.ExecutionFault;
+import oneapp.incture.workbox.demo.adapter_base.util.PMCConstant;
+import oneapp.incture.workbox.demo.adapter_base.util.ServicesUtil;
+import oneapp.incture.workbox.demo.notification.dto.NotificationSettingDto;
+import oneapp.incture.workbox.demo.notification.entity.UserSettingDetailsDo;
+
+//////@Transactional
+@Repository("NotificationSettingDao")
+public class NotificationSettingDao extends BaseDao<UserSettingDetailsDo, NotificationSettingDto> {
+
+	@Override
+	protected NotificationSettingDto exportDto(UserSettingDetailsDo entity) {
+
+		NotificationSettingDto NotificationProfileSettingDto = new NotificationSettingDto();
+
+		if (!ServicesUtil.isEmpty(entity.getProfileSettingId()))
+			NotificationProfileSettingDto.setProfileSettingId(entity.getProfileSettingId());
+		if (!ServicesUtil.isEmpty(entity.getAdditionalSettingId()))
+			NotificationProfileSettingDto.setAdditionalSettingId(entity.getAdditionalSettingId());
+		if (!ServicesUtil.isEmpty(entity.getValue()))
+			NotificationProfileSettingDto.setValue(entity.getValue());
+		if (!ServicesUtil.isEmpty(entity.getMore()))
+			NotificationProfileSettingDto.setMore(entity.getMore());
+
+		return NotificationProfileSettingDto;
+	}
+
+	@Override
+	protected UserSettingDetailsDo importDto(NotificationSettingDto fromDto) {
+
+		UserSettingDetailsDo entity = new UserSettingDetailsDo();
+
+		if (!ServicesUtil.isEmpty(fromDto.getProfileSettingId()))
+			entity.setProfileSettingId(fromDto.getProfileSettingId());
+		if (!ServicesUtil.isEmpty(fromDto.getAdditionalSettingId()))
+			entity.setAdditionalSettingId(fromDto.getAdditionalSettingId());
+		if (!ServicesUtil.isEmpty(fromDto.getValue()))
+			entity.setValue(fromDto.getValue());
+		if (!ServicesUtil.isEmpty(fromDto.getMore()))
+			entity.setMore(fromDto.getMore());
+
+		return entity;
+	}
+
+	public String saveOrUpdate(List<NotificationSettingDto> dtos) {
+		try {
+			for (NotificationSettingDto notificationSettingDto : dtos) {
+				saveOrUpdate(importDto(notificationSettingDto));
+			}
+		} catch (ExecutionFault e) {
+			e.printStackTrace();
+			return PMCConstant.FAILURE;
+		}
+		return PMCConstant.SUCCESS;
+
+	}
+
+	public String deleteSettings(List<NotificationSettingDto> dtos) {
+		try {
+			for (NotificationSettingDto notificationSettingDto : dtos) {
+				remove(importDto(notificationSettingDto));
+			}
+		} catch (ExecutionFault e) {
+			e.printStackTrace();
+			return PMCConstant.FAILURE;
+		}
+		return PMCConstant.SUCCESS;
+
+	}
+
+	public String copyAdminSettings(String settingId, String newSettingId) {
+		String query = "insert into user_setting_details select '" + newSettingId
+				+ "',additonal_setting_id,value, more  from  user_setting_details where profile_setting_id='"
+				+ settingId + "'";
+		try {
+			Query insertQuery = getSession().createSQLQuery(query);
+			insertQuery.executeUpdate();
+			return PMCConstant.SUCCESS;
+		} catch (Exception e) {
+			System.err.println("NotificationSettingDao.copyAdminSettings() error" + e.getMessage());
+			return PMCConstant.FAILURE;
+		}
+
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<NotificationSettingDto> getResult(String settingId) {
+		List<NotificationSettingDto> ruleDtos = null;
+		NotificationSettingDto dto = null;
+		String queryString = " select do from UserSettingDetailsDo do where do.profileSettingId='1'";
+
+		System.err.println("getResult [NotificationSettingDto][QueryString]" + queryString);
+		Query query = this.getSession().createQuery(queryString);
+		List<UserSettingDetailsDo> resultList = query.list();
+		if (!ServicesUtil.isEmpty(resultList)) {
+			ruleDtos = new ArrayList<NotificationSettingDto>();
+			for (UserSettingDetailsDo entity : resultList) {
+				dto = new NotificationSettingDto();
+				dto = exportDto(entity);
+				ruleDtos.add(dto);
+			}
+		}
+		return ruleDtos;
+	}
+
+}

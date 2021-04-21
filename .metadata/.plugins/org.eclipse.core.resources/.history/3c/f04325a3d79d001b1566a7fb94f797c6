@@ -1,0 +1,62 @@
+package com.oneapp.icf.assignment.entity;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+
+@Entity
+@Table(name = "EMPLOYEE_DETAILS")
+public class EmployeeDetailsDo implements BaseDo,Serializable{
+	
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@Column(name = "ID", columnDefinition = "VARCHAR(200)")
+	private String id;
+	@Id
+	@Column(name = "FIRST_NAME", columnDefinition = "VARCHAR(200)")
+	private Integer firstName;
+	
+	@Column(name = "LAST_NAME" , columnDefinition = "VARCHAR(200)")
+	private String lastName;
+	
+	@Column(name = "EMPLOYMENT_ID" , columnDefinition = "VARCHAR(200)")
+	private String employmentId;
+	
+	@Column(name = "START_DATE" , columnDefinition = "VARCHAR(200)")
+	private String startDate;
+	
+	@Column(name = "END_DATE" , columnDefinition = "VARCHAR(200)")
+	private String endDate;
+	
+	@Column(name = "DESIGNATION" , columnDefinition = "VARCHAR(200)")
+	private String designation;
+	
+	@Column(name = "DEPARTMENT" , columnDefinition = "VARCHAR(200)")
+	private String department;
+	
+	@Column(name = "STATUS" , columnDefinition = "VARCHAR(200)")
+	private String status;
+	
+	@Column(name = "DOB" , columnDefinition = "VARCHAR(200)")
+	private String dob;
+	
+	@Column(name = "REPORTING_MANAGER" , columnDefinition = "VARCHAR(200)")
+	private String reportingManager;
+	
+	@Column(name = "GENDER" , columnDefinition = "VARCHAR(200)")
+	private String gender;
+	
+	@Column(name = "BLOOD_GROUP" , columnDefinition = "VARCHAR(200)")
+	private String bloodGroup;
+	
+	@Column(name = "ADDRESS" , columnDefinition = "VARCHAR(200)")
+	private String address;
+		
+	
+	
+}

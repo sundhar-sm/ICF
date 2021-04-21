@@ -1,0 +1,9 @@
+package com.oneapp.icf.assignment.dao;
+
+import org.springframework.data.repository.CrudRepository;
+
+//repository that extends CrudRepository  
+public interface EmployeeRepository extends CrudRepository<Books, Integer> {
+	
+	
+}

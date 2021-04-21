@@ -1,0 +1,102 @@
+package com.oneapp.icf.assignment.rest;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.oneapp.icf.assignment.dto.DependentEmployeeDetailsDto;
+import com.oneapp.icf.assignment.entity.DependentEmployeeDetailsDo;
+import com.oneapp.icf.assignment.services.DependentEmployeeService;
+
+@RestController
+@ComponentScan("oneapp.icf")
+@RequestMapping(value = "/icf/dependentDependentEmployee", produces = "application/json")
+public class DependentDependentEmployeeRest {
+
+	@Autowired
+	DependentEmployeeService dependentDependentEmployeeService;
+
+	@RequestMapping(value = "/getAllDependentEmployee", method = RequestMethod.GET)
+	public List<DependentEmployeeDetailsDo> getAllDependentEmployee() {
+
+		List<DependentEmployeeDetailsDo> response = null;
+		try {
+			response = dependentDependentEmployeeService.getAllDependentEmployee();
+		} catch (Exception e) {
+
+			System.err.println("getAllDependentEmployee error : " + e);
+			e.printStackTrace();
+		}
+
+		return response;
+	}
+	
+	@RequestMapping(value = "/getDependentEmployeeById", method = RequestMethod.GET)
+	public DependentEmployeeDetailsDto getDependentEmployeeById(
+			@RequestParam(value = "dependentDependentEmployeeId", required = true) String dependentDependentEmployeeId) {
+		System.err.println("dependentDependentEmployeeId : " + dependentDependentEmployeeId);
+		DependentEmployeeDetailsDto response = null;
+		try {
+			response = dependentDependentEmployeeService.getDependentEmployeeById(dependentDependentEmployeeId);
+		} catch (Exception e) {
+
+			System.err.println("getDependentEmployeeById error : " + e);
+			e.printStackTrace();
+		}
+
+		return response;
+	}
+
+	@RequestMapping(value = "/deleteDependentEmployee", method = RequestMethod.GET)
+	public String deleteDependentEmployee(
+			@RequestParam(value = "dependentDependentEmployeeId", required = true) String dependentDependentEmployeeId) {
+		System.err.println("deleteDependentEmployee dependentDependentEmployeeId : " + dependentDependentEmployeeId);
+		String response = null;
+		try {
+			response = dependentDependentEmployeeService.deleteDependentEmployee(dependentDependentEmployeeId);
+		} catch (Exception e) {
+
+			System.err.println("deleteDependentEmployee error : " + e);
+			e.printStackTrace();
+		}
+
+		return response;
+	}
+	
+	@RequestMapping(value = "/createNewDependentEmployee", method = RequestMethod.POST)
+	public String createNewDependentEmployee(@RequestBody DependentEmployeeDetailsDto dependentDependentEmployeeDetailsDto) {
+		System.err.println("dependentDependentEmployeeDetailsDto : " + dependentDependentEmployeeDetailsDto);
+		String response = "";
+		try {
+			response = dependentDependentEmployeeService.createNewDependentEmployee(dependentDependentEmployeeDetailsDto);
+		} catch (Exception e) {
+
+			System.err.println("createNewDependentEmployee error : " + e);
+			e.printStackTrace();
+		}
+
+		return response;
+	}
+
+	@RequestMapping(value = "/updateDependentEmployee", method = RequestMethod.POST)
+	public String updateDependentEmployee(@RequestBody DependentEmployeeDetailsDto dependentDependentEmployeeDetailsDto) {
+		System.err.println("dependentDependentEmployeeDetailsDto : " + dependentDependentEmployeeDetailsDto);
+		String response = "";
+		try {
+			response = dependentDependentEmployeeService.updateDependentEmployee(dependentDependentEmployeeDetailsDto);
+		} catch (Exception e) {
+
+			System.err.println("updateDependentEmployee error : " + e);
+			e.printStackTrace();
+		}
+
+		return response;
+	}
+
+}

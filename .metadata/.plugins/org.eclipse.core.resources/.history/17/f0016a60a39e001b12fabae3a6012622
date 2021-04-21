@@ -1,0 +1,82 @@
+package com.oneapp.icf.assignment.services;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.oneapp.icf.assignment.dto.EmployeeDetailsDto;
+
+@Service
+public class EmployeeServiceImpl implements EmployeeService {
+
+	@Override
+	public List<EmployeeDetailsDto> getAllEmployee() {
+		List<EmployeeDetailsDto> responseDto = null;
+		try {
+				
+			responseDto = notificationDao.getAllEmployeeDetail();
+
+		} catch (Exception e) {
+			System.err.println("getAllEmployeeById error " + e.getMessage());
+		}
+
+		return responseDto;
+	}
+
+	@Override
+	public EmployeeDetailsDto getEmployeeById(String employeeId) {
+		EmployeeDetailsDto responseDto = new EmployeeDetailsDto();
+		try {
+				
+			responseDto = notificationDao.getEmployeeDetail(employeeId);
+
+		} catch (Exception e) {
+			System.err.println("getEmployeeById error " + e.getMessage());
+		}
+
+		return responseDto;
+	}
+
+	@Override
+	public String deleteEmployee(String employeeId) {
+		String status = "Employee deletion Failure";
+		try {
+			notificationProfileSettingDao.delete(employeeId);
+			status = "Employee deleted Successfully";
+		} catch (Exception e) {
+			System.err.println("[Employee][deletion][error]" + e.getMessage());
+			e.printStackTrace();
+		}
+		return status;
+	}
+
+	@Override
+	public String createNewEmployee(EmployeeDetailsDto dto) {
+		String status = "Employee Creation Failure";
+		try {
+			dto.setId(UUID.randomUUID().toString());
+			dto.setEmploymentId(UUID.randomUUID().toString());
+			notificationProfileSettingDao.create(dto);
+			status = "Employee Created Successfully";
+		} catch (Exception e) {
+			System.err.println("[Employee][create][error]" + e.getMessage());
+			e.printStackTrace();
+		}
+		return status;
+	}
+
+	@Override
+	public String updateEmployee(EmployeeDetailsDto dto) {
+		String status = "Employee updatation Failure";
+		try {
+			notificationProfileSettingDao.saveOrUpdate(dto);
+			status = "Employee updatated Successfully";
+		} catch (Exception e) {
+			System.err.println("[Employee][updatation][error]" + e.getMessage());
+			e.printStackTrace();
+		}
+		return status;
+	}
+	
+}

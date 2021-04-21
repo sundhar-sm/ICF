@@ -1,0 +1,343 @@
+package oneapp.incture.workbox.demo.notification.dao;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.hibernate.Query;
+import org.springframework.stereotype.Repository;
+
+import com.sap.cloud.security.xsuaa.token.Token;
+
+import oneapp.incture.workbox.demo.adapter_base.dao.BaseDao;
+import oneapp.incture.workbox.demo.adapter_base.util.ExecutionFault;
+import oneapp.incture.workbox.demo.adapter_base.util.InvalidInputFault;
+import oneapp.incture.workbox.demo.adapter_base.util.NoResultFault;
+import oneapp.incture.workbox.demo.adapter_base.util.ServicesUtil;
+import oneapp.incture.workbox.demo.notification.dto.NotificationDto;
+import oneapp.incture.workbox.demo.notification.dto.NotificationEventDto;
+import oneapp.incture.workbox.demo.notification.dto.NotificationSettingDto;
+import oneapp.incture.workbox.demo.notification.dto.NotificationViewDetailRequestDto;
+import oneapp.incture.workbox.demo.notification.dto.NotificationViewDetailResponseDto;
+import oneapp.incture.workbox.demo.notification.entity.NotificationDo;
+
+@Repository
+public class NotificationEventsDao extends BaseDao<NotificationDo, NotificationDto> {
+
+	@Override
+	protected NotificationDo importDto(NotificationDto fromDto)
+			throws InvalidInputFault, ExecutionFault, NoResultFault {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected NotificationDto exportDto(NotificationDo entity) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public NotificationViewDetailResponseDto getViewDetail(String viewName, String viewType) {
+		NotificationViewDetailResponseDto detailResponseDto = new NotificationViewDetailResponseDto();
+		List<NotificationEventDto> eventDtos = new ArrayList<>();
+		List<Object[]> resultList = null;
+
+		String queryString = "";
+		try {
+			if (!"Profile".equals(viewType)) {
+				queryString = "select ne.event_group, ne.event_name, ne.event_id, ne.default, "
+						+ "ne.priority, (SELECT COALESCE(STRING_AGG (ecm.channel, ', '), '')FROM event_channel_mapping ecm "
+						+ "where ecm.event_id=ne.event_id ) as channelList"
+						+ ", vs.settings from notification_events ne inner join "
+						+ "view_setting vs on ne.event_group=vs.view_name where vs.user_id='Admin'";
+				if (!ServicesUtil.isEmpty(viewType)) {
+					queryString += " and vs.view_type='" + viewType + "'";
+				}
+				if (!ServicesUtil.isEmpty(viewName)) {
+					queryString += " and vs.view_name='" + viewName + "'";
+				}
+			} else {
+				queryString = "" + "select ne.event_group, ne.event_name, ne.event_id, ne.default, " + "ne.priority, "
+						+ "(SELECT COALESCE(STRING_AGG (ecm.channel, ', '), '')FROM event_channel_mapping ecm where ecm.event_id=ne.event_id ) as channelList "
+						+ ", nps.setting_id " + "from notification_profile_setting nps "
+						+ "join user_notification_config unc on unc.id=nps.profile_id "
+						+ "join  notification_events ne on unc.event_id=ne.event_id " + "where nps.user_id='Admin'";
+
+				if (!ServicesUtil.isEmpty(viewType)) {
+					queryString += " and unc.type='" + viewType + "'";
+				}
+				if (!ServicesUtil.isEmpty(viewName)) {
+					queryString += " and nps.profile_name='" + viewName + "'";
+				}
+			}
+
+			System.err.println("NotificationEventsDao.getViewDetail() queryString" + queryString);
+			Query query = getSession().createSQLQuery(queryString);
+
+			resultList = query.list();
+
+			if (!ServicesUtil.isEmpty(resultList)) {
+
+				for (Object[] obj : resultList) {
+					NotificationEventDto eventDto = new NotificationEventDto();
+					eventDto.setEventGroup(obj[0] == null ? null : (String) obj[0]);
+					eventDto.setEventName(obj[1] == null ? null : (String) obj[1]);
+					eventDto.setEventId(obj[2] == null ? null : (String) obj[2]);
+					byte flag = (obj[3] == null ? 0 : (byte) obj[3]);
+					eventDto.setIsDefault(flag == 1 ? true : false);
+
+					eventDto.setPriority(obj[4] == null ? null : (String) obj[4]);
+
+					String channelList = obj[5] == null ? null : (String) obj[5];
+					eventDto.setChannelList(Arrays.asList(channelList.split("\\s*,\\s*")));
+					eventDto.setSettingId(obj[6] == null ? null : (String) obj[6]);
+					eventDtos.add(eventDto);
+				}
+
+				detailResponseDto.setEventDtos(eventDtos);
+				System.err.println("NotificationEventsDao.getViewDetail() detailResponseDto" + detailResponseDto);
+
+			}
+		} catch (Exception e) {
+			System.err.println("NotificationEventsDao.getViewDetail() error" + e.getMessage());
+		}
+
+		return detailResponseDto;
+
+	}
+
+	@SuppressWarnings("unchecked")
+	public NotificationViewDetailResponseDto getUserViewDetail(NotificationViewDetailRequestDto requestDto) {
+		NotificationViewDetailResponseDto detailResponseDto = null;
+		List<NotificationEventDto> eventDtos = new ArrayList<>();
+		List<Object[]> resultList = null;
+
+		String queryString = "";
+		if (!"Profile".equals(requestDto.getViewType())) {
+			queryString = "select distinct ne.event_group, ne.event_name, ne.event_id, ne.default, ne.priority,unc.channel, vs.settings"
+					+ " from user_notification_config unc inner join notification_events ne"
+					+ " on ne.event_id=unc.event_id" + " inner join view_setting vs on ne.event_group=vs.view_name "
+					+ " where vs.user_id='" + requestDto.getUserId() + "'";
+
+			queryString = "SELECT DISTINCT ne.event_group,	ne.event_name,ne.event_id,	ne.default,ne.priority,(SELECT COALESCE(STRING_AGG(uc.channel,', '	),'')"
+					+ " FROM user_notification_config AS uc WHERE uc.id = '" + requestDto.getUserId()
+					+ "' AND ne.event_id = uc.event_id GROUP BY event_id) AS channelList,vs.settings"
+					+ " FROM user_notification_config AS unc INNER JOIN notification_events AS ne ON ne.event_id = unc.event_id"
+					+ " INNER JOIN view_setting AS vs ON ne.event_group = vs.view_name WHERE vs.user_id = '"
+					+ requestDto.getUserId() + "'" + " AND vs.user_id = unc.id ";
+
+			if (!ServicesUtil.isEmpty(requestDto.getViewType())) {
+				if ("Where".equalsIgnoreCase(requestDto.getViewType())) {
+					if (!ServicesUtil.isEmpty(requestDto.getViewName()))
+						queryString += " and unc.channel='" + requestDto.getViewName() + "'";
+				} else {
+					queryString += " and vs.view_type='" + requestDto.getViewType() + "'";
+					if (!ServicesUtil.isEmpty(requestDto.getViewName()))
+						queryString += " and vs.view_name='" + requestDto.getViewName() + "'";
+				}
+			}
+
+		} else {
+			queryString = "" + "select distinct ne.event_group, ne.event_name, ne.event_id, ne.default, "
+					+ "ne.priority, " + " (select COALESCE(STRING_AGG (channel, ', '), '') "
+					+ "from user_notification_config unc join notification_profile_setting"
+					+ " nps on nps.profile_id=unc.id where nps.profile_name='" + requestDto.getViewName() + "' "
+					+ "and nps.user_id='" + requestDto.getUserId()
+					+ "' and event_id=ne.event_id) as channelList , nps.setting_id "
+					+ "from notification_profile_setting nps "
+					+ "join user_notification_config unc on unc.id=nps.profile_id "
+					+ "join  notification_events ne on unc.event_id=ne.event_id " + "where nps.user_id='"
+					+ requestDto.getUserId() + "' ";
+
+			// nps.profile_name='"+ requestDto.getViewName() + "' and
+			// unc.type='" + requestDto.getViewType() + "' and
+
+			if (!ServicesUtil.isEmpty(requestDto.getViewType())) {
+				queryString += " and unc.type='" + requestDto.getViewType() + "'";
+			}
+			if (!ServicesUtil.isEmpty(requestDto.getViewName())) {
+				queryString += " and nps.profile_name='" + requestDto.getViewName() + "'";
+			}
+		}
+
+		Query query = getSession().createSQLQuery(queryString);
+
+		System.err.println("NotificationEventsDao.getUserViewDetail() queryString" + queryString);
+
+		resultList = query.list();
+
+		if (!ServicesUtil.isEmpty(resultList)) {
+			detailResponseDto = new NotificationViewDetailResponseDto();
+
+			for (Object[] obj : resultList) {
+				NotificationEventDto eventDto = new NotificationEventDto();
+				eventDto.setEventGroup(obj[0] == null ? null : (String) obj[0]);
+				eventDto.setEventName(obj[1] == null ? null : (String) obj[1]);
+				eventDto.setEventId(obj[2] == null ? null : (String) obj[2]);
+				byte flag = (obj[3] == null ? 0 : (byte) obj[3]);
+				eventDto.setIsDefault(flag == 1 ? true : false);
+
+				eventDto.setPriority(obj[4] == null ? null : (String) obj[4]);
+
+				String channelList = obj[5] == null ? null : (String) obj[5];
+				eventDto.setChannelList(Arrays.asList(channelList.split("\\s*,\\s*")));
+				eventDto.setSettingId(obj[6] == null ? null : (String) obj[6]);
+				eventDtos.add(eventDto);
+			}
+
+			detailResponseDto.setEventDtos(eventDtos);
+			System.err.println("NotificationEventsDao.getUserViewDetail() detailResponseDto" + detailResponseDto);
+
+		}
+
+		return detailResponseDto;
+
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<NotificationSettingDto> getSettingDetail(String profileSettingId, String tabType,Token token) {
+		List<NotificationSettingDto> settingDtos = null;
+
+		if (ServicesUtil.isEmpty(profileSettingId) && "AdditionalSetting".equals(tabType)) {
+			profileSettingId = token.getLogonName();//UserManagementUtil.getLoggedInUser().getName();
+		}
+
+		Query query = getSession().createSQLQuery(
+				"select usd.ADDITONAL_SETTING_ID, usd.VALUE,usd.more,ads.setting_name, ads.DATATYPE,usd.PROFILE_SETTING_ID from user_setting_details usd "
+						+ " inner join additional_setting"
+						+ " ads on usd.ADDITONAL_SETTING_ID= ads.ADDITONAL_SETTING_ID where usd.profile_setting_id='"
+						+ profileSettingId + "'");
+
+		List<Object[]> resultList = query.list();
+		boolean value = false;
+		if (ServicesUtil.isEmpty(resultList)) {
+			value = true;
+			query = getSession().createSQLQuery(
+					"select usd.ADDITONAL_SETTING_ID, usd.VALUE,usd.more,ads.setting_name, ads.DATATYPE,usd.PROFILE_SETTING_ID from user_setting_details usd "
+							+ " inner join additional_setting"
+							+ " ads on usd.ADDITONAL_SETTING_ID= ads.ADDITONAL_SETTING_ID where usd.profile_setting_id='1'");
+
+		}
+		resultList = query.list();
+		if (resultList != null) {
+			settingDtos = new ArrayList<>();
+			for (Object[] obj : resultList) {
+				NotificationSettingDto settingDto = new NotificationSettingDto();
+				settingDto.setAdditionalSettingId(obj[0] == null ? null : (String) obj[0]);
+				settingDto.setValue(obj[1] == null ? null : (String) obj[1]);
+				settingDto.setMore(obj[2] == null ? null : (String) obj[2]);
+				settingDto.setSettingName(obj[3] == null ? null : (String) obj[3]);
+				settingDto.setDataType(obj[4] == null ? null : (String) obj[4]);
+				if (value)
+					settingDto.setProfileSettingId(profileSettingId);
+				else
+					settingDto.setProfileSettingId(obj[5] == null ? null : (String) obj[5]);
+
+				if (!"Vibration".equalsIgnoreCase(settingDto.getAdditionalSettingId()))
+					settingDto.setSelectionList(
+							"/inbox/selectionList?selectionParameter=" + settingDto.getAdditionalSettingId());
+				settingDtos.add(settingDto);
+			}
+		}
+
+		return settingDtos;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<NotificationSettingDto> getAllSettingDetail(String userId, String event) {
+		List<NotificationSettingDto> settingDtos = null;
+
+		//Based on Priority
+		//Setting Details based on additional settings configured by user
+		Query query = getSession().createSQLQuery(
+				"select usd.ADDITONAL_SETTING_ID, usd.VALUE,usd.more,ads.setting_name, ads.DATATYPE,usd.PROFILE_SETTING_ID from "
+						+ "user_setting_details usd inner join additional_setting ads on usd.ADDITONAL_SETTING_ID= ads.ADDITONAL_SETTING_ID "
+						+ "where usd.profile_setting_id= '" + userId + "'");
+
+		List<Object[]> resultList = query.list();
+		
+		//Setting Details based on profile settings configured by user
+		if (ServicesUtil.isEmpty(resultList)) {
+
+			query = getSession().createSQLQuery(
+					"select usd.ADDITONAL_SETTING_ID, usd.VALUE,usd.more,ads.setting_name, ads.DATATYPE,usd.PROFILE_SETTING_ID from "
+							+ "user_setting_details usd inner join additional_setting ads on usd.ADDITONAL_SETTING_ID= ads.ADDITONAL_SETTING_ID "
+							+ "inner join notification_profile_setting nps on nps.SETTING_ID= usd.PROFILE_SETTING_ID where "
+							+ "nps.user_id = '" + userId + "' and nps.is_active = '1'");
+
+			resultList = query.list();
+		}
+
+		//Setting Details based on event object configured by user
+		if (ServicesUtil.isEmpty(resultList)) {
+
+			query = getSession().createSQLQuery(
+					"select usd.ADDITONAL_SETTING_ID, usd.VALUE,usd.more,ads.setting_name, ads.DATATYPE,usd.PROFILE_SETTING_ID from "
+							+ "user_setting_details usd inner join additional_setting ads on usd.ADDITONAL_SETTING_ID= ads.ADDITONAL_SETTING_ID "
+							+ "inner join VIEW_SETTING vs on vs.SETTINGS= usd.PROFILE_SETTING_ID "
+							+ "where vs.user_id = '" + userId + "' and vs.VIEW_NAME IN ('" + event + "')");
+
+			resultList = query.list();
+		}
+		
+		//Setting Details based on Channel object configured by user
+		if (ServicesUtil.isEmpty(resultList)) {
+
+			query = getSession().createSQLQuery(
+					"select usd.ADDITONAL_SETTING_ID, usd.VALUE,usd.more,ads.setting_name, ads.DATATYPE,usd.PROFILE_SETTING_ID from "
+							+ "user_setting_details usd inner join additional_setting ads on usd.ADDITONAL_SETTING_ID= ads.ADDITONAL_SETTING_ID "
+							+ "inner join VIEW_SETTING vs on vs.SETTINGS= usd.PROFILE_SETTING_ID "
+							+ "where vs.user_id = '" + userId + "' and vs.VIEW_NAME IN ('Web')");
+
+			resultList = query.list();
+		}
+		
+		//Default Setting Details if not configured by user
+		if (ServicesUtil.isEmpty(resultList)) {
+
+			query = getSession().createSQLQuery(
+					"select usd.ADDITONAL_SETTING_ID, usd.VALUE,usd.more,ads.setting_name, ads.DATATYPE,usd.PROFILE_SETTING_ID from user_setting_details usd "
+							+ " inner join additional_setting"
+							+ " ads on usd.ADDITONAL_SETTING_ID= ads.ADDITONAL_SETTING_ID where usd.profile_setting_id='1'");
+			
+			resultList = query.list();
+		}
+		
+		System.err.println("NotificationEventsDao.getAllSettingDetail() Query " + query );
+
+		if (resultList != null) {
+			settingDtos = new ArrayList<>();
+			for (Object[] obj : resultList) {
+				NotificationSettingDto settingDto = new NotificationSettingDto();
+				settingDto.setAdditionalSettingId(obj[0] == null ? null : (String) obj[0]);
+				settingDto.setValue(obj[1] == null ? null : (String) obj[1]);
+				settingDto.setMore(obj[2] == null ? null : (String) obj[2]);
+				settingDto.setSettingName(obj[3] == null ? null : (String) obj[3]);
+				settingDto.setDataType(obj[4] == null ? null : (String) obj[4]);
+				settingDto.setProfileSettingId(obj[5] == null ? null : (String) obj[5]);
+
+				if (!"Vibration".equalsIgnoreCase(settingDto.getAdditionalSettingId()))
+					settingDto.setSelectionList(
+							"/inbox/selectionList?selectionParameter=" + settingDto.getAdditionalSettingId());
+				settingDtos.add(settingDto);
+			}
+		}
+
+		return settingDtos;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<String> getAllEvents() {
+
+		List<String> resultList = new ArrayList<>();
+		try {
+			Query query = getSession().createSQLQuery("select distinct EVENT_GROUP from NOTIFICATION_EVENTS");
+			resultList = query.list();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resultList;
+
+	}
+}

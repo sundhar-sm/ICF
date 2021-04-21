@@ -1,0 +1,5 @@
+package com.oneapp.icf.assignment.services;
+
+public interface EmployeeService {
+	
+}
