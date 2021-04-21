@@ -1951,3 +1951,10 @@
 2021-04-21 17:42:32,154 [Worker-14: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
 2021-04-21 17:42:32,155 [Worker-14: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered properties files.
 2021-04-21 17:42:32,155 [Worker-14: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Sundhar.SM\Documents\Assignment\assignment\src\test\resources
+2021-04-21 18:19:39,878 [Worker-20: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2021-04-21 18:19:39,969 [Worker-20: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered properties files.
+2021-04-21 18:19:39,971 [Worker-20: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2021-04-21 18:19:39,973 [Worker-20: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2021-04-21 18:19:39,978 [Worker-20: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2021-04-21 18:19:39,979 [Worker-20: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered properties files.
+2021-04-21 18:19:39,979 [Worker-20: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Sundhar.SM\Documents\Assignment\assignment\src\test\resources
